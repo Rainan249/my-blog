@@ -17,7 +17,7 @@ const navLinks = [
   <header class="sticky top-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border">
     <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
       <router-link to="/" class="font-heading text-xl font-bold text-primary tracking-tight hover:text-accent transition-colors duration-200">
-        墨迹
+        雨鹿
       </router-link>
 
       <!-- Desktop nav -->

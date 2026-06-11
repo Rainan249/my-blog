@@ -11,10 +11,10 @@ const recentPosts = posts.slice(0, 3)
     <div class="max-w-2xl">
       <p class="text-sm font-medium text-accent mb-4 tracking-wide uppercase">个人博客</p>
       <h1 class="font-heading text-4xl md:text-5xl font-bold text-primary leading-tight mb-6">
-        用文字记录<br />技术与思考
+        立志成为一个<br />糕手
       </h1>
       <p class="text-lg text-text-muted leading-relaxed mb-8">
-        分享前端开发、UI 设计和工程实践中的经验与见解。在这里，每一篇文章都是一次深入的探索。
+        记录学习路上的所见所闻，分享技术探索的点滴感悟。
       </p>
       <div class="flex gap-4">
         <router-link
@@ -56,9 +56,9 @@ const recentPosts = posts.slice(0, 3)
     <div class="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
       <div>
         <p class="text-sm font-medium text-accent mb-3 tracking-wide uppercase">关于我</p>
-        <h2 class="font-heading text-2xl font-bold text-primary mb-4">热爱技术，热爱创造</h2>
+        <h2 class="font-heading text-2xl font-bold text-primary mb-4">热爱技术，不断学习</h2>
         <p class="text-text-muted leading-relaxed mb-6">
-          我是一名前端开发者，专注于 Vue.js 生态系统和现代 Web 技术。相信好的代码应该像好的文章一样——清晰、简洁、有意义。
+          一个学生，热衷于技术。喜欢探索新的东西，记录学习过程，也希望通过博客和大家交流。
         </p>
         <router-link
           to="/about"
@@ -69,20 +69,12 @@ const recentPosts = posts.slice(0, 3)
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div class="bg-bg border border-border rounded-xl p-5 text-center">
-          <p class="font-heading text-3xl font-bold text-primary">50+</p>
-          <p class="text-xs text-text-muted mt-1">技术文章</p>
-        </div>
-        <div class="bg-bg border border-border rounded-xl p-5 text-center">
           <p class="font-heading text-3xl font-bold text-primary">5</p>
-          <p class="text-xs text-text-muted mt-1">年开发经验</p>
+          <p class="text-xs text-text-muted mt-1">示例文章</p>
         </div>
         <div class="bg-bg border border-border rounded-xl p-5 text-center">
-          <p class="font-heading text-3xl font-bold text-primary">10K+</p>
-          <p class="text-xs text-text-muted mt-1">读者关注</p>
-        </div>
-        <div class="bg-bg border border-border rounded-xl p-5 text-center">
-          <p class="font-heading text-3xl font-bold text-primary">100+</p>
-          <p class="text-xs text-text-muted mt-1">开源贡献</p>
+          <p class="font-heading text-3xl font-bold text-primary">Vue</p>
+          <p class="text-xs text-text-muted mt-1">技术栈</p>
         </div>
       </div>
     </div>

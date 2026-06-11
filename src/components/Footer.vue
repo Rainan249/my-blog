@@ -8,9 +8,9 @@ const currentYear = new Date().getFullYear()
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Brand -->
         <div>
-          <h3 class="font-heading text-lg font-bold text-primary mb-3">墨迹</h3>
+          <h3 class="font-heading text-lg font-bold text-primary mb-3">雨鹿</h3>
           <p class="text-sm text-text-muted leading-relaxed">
-            用文字记录技术与思考，分享前端开发的点点滴滴。
+            立志成为一个糕手，记录学习与探索的旅程。
           </p>
         </div>
 
@@ -28,15 +28,15 @@ const currentYear = new Date().getFullYear()
         <div>
           <h4 class="text-sm font-semibold text-primary mb-3">社交</h4>
           <ul class="space-y-2">
-            <li><a href="#" class="text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer">GitHub</a></li>
-            <li><a href="#" class="text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer">Twitter</a></li>
-            <li><a href="#" class="text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer">Email</a></li>
+            <li><a href="https://github.com/Rainan249" target="_blank" class="text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer">GitHub</a></li>
+            <li><a href="https://blog.csdn.net/" target="_blank" class="text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer">CSDN</a></li>
+            <li><a href="mailto:2913756838@qq.com" class="text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer">Email</a></li>
           </ul>
         </div>
       </div>
 
       <div class="mt-10 pt-6 border-t border-border text-center">
-        <p class="text-xs text-text-muted">&copy; {{ currentYear }} 墨迹. All rights reserved.</p>
+        <p class="text-xs text-text-muted">&copy; {{ currentYear }} 雨鹿. All rights reserved.</p>
       </div>
     </div>
   </footer>
