@@ -343,7 +343,7 @@ body {
   background: var(--color-text-muted);
 }
 
-/* ── Blog post layout: independent scroll ── */
+/* ── Blog post layout: fixed TOC + scrollable content ── */
 .blog-post-layout {
   height: 100vh;
   overflow: hidden;
@@ -355,33 +355,38 @@ body {
 }
 
 .blog-post-toc {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 14rem;
-  flex-shrink: 0;
-  display: flex;
-  align-items: flex-start;
+  z-index: 40;
+  background: var(--color-bg);
 }
 
 .blog-post-toc-inner {
-  position: sticky;
-  top: 1rem;
-  height: calc(100vh - 2rem);
+  height: 100%;
   overflow-y: auto;
   width: 100%;
-  padding: 0 0.5rem 2rem 1.5rem;
+  padding: 1.5rem 0.5rem 2rem 1.5rem;
 }
 
 .blog-post-divider {
+  position: fixed;
+  left: 14rem;
+  top: 0;
+  bottom: 0;
   width: 1px;
   background: var(--color-border);
-  flex-shrink: 0;
-  margin: 1.5rem 0;
+  z-index: 40;
 }
 
 .blog-post-content {
   flex: 1;
   min-width: 0;
   overflow-y: auto;
-  padding: 2rem 2.5rem;
+  padding: 2rem 2.5rem 2rem 3rem;
+  margin-left: 14.5rem;
   scroll-behavior: smooth;
 }
 
