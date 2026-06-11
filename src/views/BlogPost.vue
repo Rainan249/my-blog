@@ -205,7 +205,7 @@ function scrollToHeading(id) {
                   class="flex-1 text-left text-sm font-medium py-1 border-l-2 pl-2 transition-all duration-200 cursor-pointer"
                   :class="activeId === group.id
                     ? 'border-accent text-accent'
-                    : 'border-transparent text-text hover:text-text hover:border-border'"
+                    : 'border-transparent text-primary hover:text-accent hover:border-accent/40'"
                 >
                   {{ group.text }}
                 </button>
@@ -223,7 +223,9 @@ function scrollToHeading(id) {
                       child.depth === 4 ? 'ml-6' : 'ml-4',
                       activeId === child.id
                         ? 'border-accent text-accent'
-                        : 'border-transparent text-text-muted hover:text-text hover:border-border',
+                        : child.depth === 3
+                          ? 'border-transparent text-accent/70 hover:text-accent hover:border-accent/30'
+                          : 'border-transparent text-text-muted hover:text-text-muted/80 hover:border-border',
                     ]"
                   >
                     {{ child.text }}
