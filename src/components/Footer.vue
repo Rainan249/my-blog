@@ -8,7 +8,7 @@ const currentYear = new Date().getFullYear()
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Brand -->
         <div>
-          <h3 class="font-heading text-lg font-bold text-primary mb-3">雨鹿</h3>
+          <h3 class="font-heading text-lg font-bold text-primary mb-3">Rainan's Blog</h3>
           <p class="text-sm text-text-muted leading-relaxed">
             立志成为一个糕手，记录学习与探索的旅程。
           </p>
@@ -36,7 +36,7 @@ const currentYear = new Date().getFullYear()
       </div>
 
       <div class="mt-10 pt-6 border-t border-border text-center">
-        <p class="text-xs text-text-muted">&copy; {{ currentYear }} 雨鹿. All rights reserved.</p>
+        <p class="text-xs text-text-muted">&copy; {{ currentYear }} Rainan's Blog. All rights reserved.</p>
       </div>
     </div>
   </footer>

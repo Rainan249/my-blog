@@ -357,7 +357,6 @@ body {
 .blog-post-layout {
   height: calc(100vh - 4rem);
   overflow: hidden;
-  margin: 0 -2.5rem;
 }
 
 .blog-post-flex {
