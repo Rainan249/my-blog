@@ -37,6 +37,7 @@ const currentYear = new Date().getFullYear()
 
       <div class="mt-10 pt-6 border-t border-border text-center">
         <p class="text-xs text-text-muted">&copy; {{ currentYear }} 雨鹿. All rights reserved.</p>
+        <router-link to="/admin/login" class="text-xs text-border hover:text-text-muted transition-colors duration-200 cursor-pointer">管理后台</router-link>
       </div>
     </div>
   </footer>

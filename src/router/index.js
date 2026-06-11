@@ -3,16 +3,32 @@ import Home from '../views/Home.vue'
 import About from '../views/About.vue'
 import Blog from '../views/Blog.vue'
 import BlogPost from '../views/BlogPost.vue'
-import Write from '../views/Write.vue'
 import Contact from '../views/Contact.vue'
+import AdminLayout from '../views/admin/AdminLayout.vue'
+import Login from '../views/admin/Login.vue'
+import Dashboard from '../views/admin/Dashboard.vue'
+import PostList from '../views/admin/PostList.vue'
+import PostEditor from '../views/admin/PostEditor.vue'
+import CategoryManage from '../views/admin/CategoryManage.vue'
 
 const routes = [
   { path: '/', name: 'home', component: Home },
   { path: '/about', name: 'about', component: About },
   { path: '/blog', name: 'blog', component: Blog },
   { path: '/blog/:slug', name: 'blog-post', component: BlogPost },
-  { path: '/write', name: 'write', component: Write },
   { path: '/contact', name: 'contact', component: Contact },
+  { path: '/admin/login', name: 'admin-login', component: Login },
+  {
+    path: '/admin',
+    component: AdminLayout,
+    children: [
+      { path: '', name: 'admin', component: Dashboard },
+      { path: 'posts', name: 'admin-posts', component: PostList },
+      { path: 'posts/new', name: 'admin-post-new', component: PostEditor },
+      { path: 'posts/:id/edit', name: 'admin-post-edit', component: PostEditor },
+      { path: 'categories', name: 'admin-categories', component: CategoryManage },
+    ],
+  },
 ]
 
 const router = createRouter({
