@@ -105,7 +105,7 @@ const formattedContent = computed(() => {
   return html
 })
 
-// Build tree: each H2 is a group, H3/H4 are children
+// Build tree: each H2 is a group, H3-H6 are children
 const tocTree = computed(() => {
   const tree = []
   for (const h of headings.value) {
@@ -117,6 +117,22 @@ const tocTree = computed(() => {
   }
   return tree
 })
+
+// Color map for each heading depth (inactive state)
+const depthColorMap = {
+  2: 'text-primary',
+  3: 'text-accent/80',
+  4: 'text-amber-600',
+  5: 'text-cyan-600',
+  6: 'text-text-muted',
+}
+
+function tocItemClass(depth, id) {
+  const isActive = activeId.value === id
+  if (isActive) return 'border-accent text-accent'
+  const color = depthColorMap[depth] || 'text-text-muted'
+  return `border-transparent ${color} hover:text-accent hover:border-accent/30`
+}
 
 function toggleGroup(id) {
   if (collapsedGroups.value.has(id)) {
@@ -203,9 +219,7 @@ function scrollToHeading(id) {
                 <button
                   @click="scrollToHeading(group.id)"
                   class="flex-1 text-left text-sm font-medium py-1 border-l-2 pl-2 transition-all duration-200 cursor-pointer"
-                  :class="activeId === group.id
-                    ? 'border-accent text-accent'
-                    : 'border-transparent text-primary hover:text-accent hover:border-accent/40'"
+                  :class="tocItemClass(group.depth, group.id)"
                 >
                   {{ group.text }}
                 </button>
@@ -220,12 +234,8 @@ function scrollToHeading(id) {
                     @click="scrollToHeading(child.id)"
                     class="block w-full text-left text-xs py-0.5 border-l-2 pl-2 transition-all duration-200 cursor-pointer"
                     :class="[
-                      child.depth === 4 ? 'ml-6' : 'ml-4',
-                      activeId === child.id
-                        ? 'border-accent text-accent'
-                        : child.depth === 3
-                          ? 'border-transparent text-accent/70 hover:text-accent hover:border-accent/30'
-                          : 'border-transparent text-text-muted hover:text-text-muted/80 hover:border-border',
+                      child.depth >= 4 ? 'ml-6' : 'ml-4',
+                      tocItemClass(child.depth, child.id),
                     ]"
                   >
                     {{ child.text }}
