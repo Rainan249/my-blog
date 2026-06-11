@@ -30,9 +30,17 @@ async function handleFiles(files) {
       results.value.push({ name: file.name, ok: false, msg: '不是 .md 文件' })
       continue
     }
-    const { title, content } = await parseMdFile(file)
-    savePost({ title, category: category.value, content })
-    results.value.push({ name: file.name, ok: true, msg: title })
+    try {
+      const { title, content } = await parseMdFile(file)
+      await savePost({ title, category: category.value, content })
+      results.value.push({ name: file.name, ok: true, msg: title })
+    } catch (e) {
+      results.value.push({
+        name: file.name,
+        ok: false,
+        msg: e.message === 'NO_TOKEN' ? '请先配置 GitHub Token' : e.message,
+      })
+    }
   }
 
   importing.value = false

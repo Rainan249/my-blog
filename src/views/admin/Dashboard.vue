@@ -1,8 +1,12 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { usePosts } from '../../composables/usePosts.js'
 
-const { allPosts } = usePosts()
+const { allPosts, loadPosts } = usePosts()
+
+onMounted(() => {
+  if (!allPosts.value.length) loadPosts()
+})
 
 const stats = computed(() => {
   const posts = allPosts.value

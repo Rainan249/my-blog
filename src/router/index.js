@@ -11,6 +11,7 @@ import PostList from '../views/admin/PostList.vue'
 import PostEditor from '../views/admin/PostEditor.vue'
 import CategoryManage from '../views/admin/CategoryManage.vue'
 import ImportMD from '../views/admin/ImportMD.vue'
+import Setup from '../views/admin/Setup.vue'
 
 const routes = [
   { path: '/', name: 'home', component: Home },
@@ -29,6 +30,7 @@ const routes = [
       { path: 'posts/:id/edit', name: 'admin-post-edit', component: PostEditor },
       { path: 'categories', name: 'admin-categories', component: CategoryManage },
       { path: 'import', name: 'admin-import', component: ImportMD },
+      { path: 'setup', name: 'admin-setup', component: Setup },
     ],
   },
 ]

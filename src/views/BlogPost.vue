@@ -1,10 +1,15 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePosts } from '../composables/usePosts.js'
 
 const route = useRoute()
-const { findBySlug } = usePosts()
+const { allPosts, loading, loadPosts, findBySlug } = usePosts()
+
+onMounted(() => {
+  if (!allPosts.value.length) loadPosts()
+})
+
 const post = computed(() => findBySlug(route.params.slug))
 
 const formattedContent = computed(() => {

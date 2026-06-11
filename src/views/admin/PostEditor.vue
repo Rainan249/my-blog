@@ -5,7 +5,7 @@ import { usePosts } from '../../composables/usePosts.js'
 
 const route = useRoute()
 const router = useRouter()
-const { allPosts, savePost, updatePost } = usePosts()
+const { allPosts, loadPosts, savePost, savePostWithId } = usePosts()
 
 const isEdit = computed(() => !!route.params.id)
 const postId = computed(() => route.params.id ? Number(route.params.id) : null)
@@ -14,10 +14,12 @@ const title = ref('')
 const category = ref('')
 const content = ref('')
 const saved = ref(false)
+const error = ref('')
 
 const categories = computed(() => [...new Set(allPosts.value.map(p => p.category))])
 
-onMounted(() => {
+onMounted(async () => {
+  if (!allPosts.value.length) await loadPosts()
   if (isEdit.value && postId.value) {
     const post = allPosts.value.find(p => p.id === postId.value)
     if (post) {
@@ -28,27 +30,29 @@ onMounted(() => {
   }
 })
 
-function save() {
+async function save() {
   if (!title.value.trim() || !content.value.trim()) return
+  error.value = ''
 
-  if (isEdit.value && postId.value) {
-    updatePost(postId.value, {
-      title: title.value,
-      category: category.value || '未分类',
-      content: content.value,
-    })
-  } else {
-    savePost({
-      title: title.value,
-      category: category.value || '未分类',
-      content: content.value,
-    })
+  try {
+    if (isEdit.value && postId.value) {
+      await savePostWithId(postId.value, {
+        title: title.value,
+        category: category.value || '未分类',
+        content: content.value,
+      })
+    } else {
+      await savePost({
+        title: title.value,
+        category: category.value || '未分类',
+        content: content.value,
+      })
+    }
+    saved.value = true
+    setTimeout(() => router.push('/admin/posts'), 1000)
+  } catch (e) {
+    error.value = e.message === 'NO_TOKEN' ? '请先配置 GitHub Token' : '保存失败: ' + e.message
   }
-
-  saved.value = true
-  setTimeout(() => {
-    router.push('/admin/posts')
-  }, 1000)
 }
 </script>
 
@@ -65,6 +69,10 @@ function save() {
 
     <div v-if="saved" class="bg-green-50 border border-green-200 rounded-xl p-6 text-center mb-6">
       <p class="text-green-600 font-medium">{{ isEdit ? '修改成功' : '发布成功' }}！正在跳转...</p>
+    </div>
+
+    <div v-if="error" class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+      <p class="text-red-600 text-sm">{{ error }}</p>
     </div>
 
     <form v-else @submit.prevent="save" class="space-y-6 max-w-3xl">

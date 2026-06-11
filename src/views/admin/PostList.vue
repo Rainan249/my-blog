@@ -1,17 +1,25 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { usePosts } from '../../composables/usePosts.js'
 
-const { allPosts, deletePost } = usePosts()
+const { allPosts, loading, loadPosts, deletePost } = usePosts()
 const confirmId = ref(null)
+
+onMounted(() => {
+  if (!allPosts.value.length) loadPosts()
+})
 
 function confirmDelete(id) {
   confirmId.value = id
 }
 
-function doDelete(id) {
-  deletePost(id)
-  confirmId.value = null
+async function doDelete(id) {
+  try {
+    await deletePost(id)
+    confirmId.value = null
+  } catch (e) {
+    alert(e.message === 'NO_TOKEN' ? '请先配置 GitHub Token' : '删除失败: ' + e.message)
+  }
 }
 
 const posts = computed(() => allPosts.value)
@@ -33,7 +41,11 @@ const posts = computed(() => allPosts.value)
     </div>
 
     <div class="bg-surface border border-border rounded-xl overflow-hidden">
-      <div v-if="posts.length === 0" class="p-12 text-center">
+      <div v-if="loading" class="p-12 text-center">
+        <p class="text-text-muted">加载中...</p>
+      </div>
+
+      <div v-else-if="posts.length === 0" class="p-12 text-center">
         <p class="text-text-muted">暂无文章</p>
         <router-link to="/admin/posts/new" class="text-accent text-sm mt-2 inline-block cursor-pointer">写第一篇文章</router-link>
       </div>

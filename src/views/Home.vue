@@ -1,9 +1,14 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { usePosts } from '../composables/usePosts.js'
 import BlogCard from '../components/BlogCard.vue'
 
-const { allPosts } = usePosts()
+const { allPosts, loadPosts } = usePosts()
+
+onMounted(() => {
+  if (!allPosts.value.length) loadPosts()
+})
+
 const recentPosts = computed(() => allPosts.value.slice(0, 3))
 </script>
 

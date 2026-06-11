@@ -10,12 +10,18 @@ const title = ref('')
 const category = ref('')
 const content = ref('')
 const saved = ref(false)
+const error = ref('')
 
-function save() {
+async function save() {
   if (!title.value.trim() || !content.value.trim()) return
-  savePost({ title: title.value, category: category.value, content: content.value })
-  saved.value = true
-  setTimeout(() => router.push('/blog'), 1200)
+  error.value = ''
+  try {
+    await savePost({ title: title.value, category: category.value, content: content.value })
+    saved.value = true
+    setTimeout(() => router.push('/blog'), 1200)
+  } catch (e) {
+    error.value = e.message === 'NO_TOKEN' ? '请先在后台配置 GitHub Token' : '发布失败: ' + e.message
+  }
 }
 </script>
 
@@ -25,6 +31,10 @@ function save() {
 
     <div v-if="saved" class="bg-accent-light border border-accent/20 rounded-xl p-8 text-center mb-8">
       <p class="text-accent font-medium">发布成功！正在跳转...</p>
+    </div>
+
+    <div v-if="error" class="bg-red-50 border border-red-200 rounded-xl p-4 mb-8">
+      <p class="text-red-600 text-sm">{{ error }}</p>
     </div>
 
     <form v-else @submit.prevent="save" class="space-y-6">

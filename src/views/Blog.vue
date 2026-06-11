@@ -1,9 +1,13 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { usePosts } from '../composables/usePosts.js'
 import BlogCard from '../components/BlogCard.vue'
 
-const { allPosts } = usePosts()
+const { allPosts, loading, loadPosts } = usePosts()
+
+onMounted(() => {
+  if (!allPosts.value.length) loadPosts()
+})
 
 const activeCategory = ref('全部')
 const categories = computed(() => ['全部', ...new Set(allPosts.value.map(p => p.category))])
@@ -37,11 +41,15 @@ const filteredPosts = computed(() => {
     </div>
 
     <!-- Posts grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-if="loading" class="text-center py-20">
+      <p class="text-text-muted">加载中...</p>
+    </div>
+
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <BlogCard v-for="post in filteredPosts" :key="post.id" :post="post" />
     </div>
 
-    <div v-if="filteredPosts.length === 0" class="text-center py-20">
+    <div v-if="!loading && filteredPosts.length === 0" class="text-center py-20">
       <p class="text-text-muted">该分类下暂无文章。</p>
     </div>
   </section>
