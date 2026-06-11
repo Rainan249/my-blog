@@ -1,8 +1,10 @@
 <script setup>
-import { posts } from '../data/posts.js'
+import { computed } from 'vue'
+import { usePosts } from '../composables/usePosts.js'
 import BlogCard from '../components/BlogCard.vue'
 
-const recentPosts = posts.slice(0, 3)
+const { allPosts } = usePosts()
+const recentPosts = computed(() => allPosts.value.slice(0, 3))
 </script>
 
 <template>

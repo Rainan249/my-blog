@@ -1,10 +1,11 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { posts } from '../data/posts.js'
+import { usePosts } from '../composables/usePosts.js'
 
 const route = useRoute()
-const post = computed(() => posts.find(p => p.slug === route.params.slug))
+const { findBySlug } = usePosts()
+const post = computed(() => findBySlug(route.params.slug))
 
 const formattedContent = computed(() => {
   if (!post.value) return ''

@@ -1,14 +1,16 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { posts } from '../data/posts.js'
+import { usePosts } from '../composables/usePosts.js'
 import BlogCard from '../components/BlogCard.vue'
 
+const { allPosts } = usePosts()
+
 const activeCategory = ref('全部')
-const categories = ['全部', ...new Set(posts.map(p => p.category))]
+const categories = computed(() => ['全部', ...new Set(allPosts.value.map(p => p.category))])
 
 const filteredPosts = computed(() => {
-  if (activeCategory.value === '全部') return posts
-  return posts.filter(p => p.category === activeCategory.value)
+  if (activeCategory.value === '全部') return allPosts.value
+  return allPosts.value.filter(p => p.category === activeCategory.value)
 })
 </script>
 
