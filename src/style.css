@@ -345,8 +345,9 @@ body {
 
 /* ── Blog post layout: fixed TOC + scrollable content ── */
 .blog-post-layout {
-  height: 100vh;
+  height: calc(100vh - 4rem);
   overflow: hidden;
+  margin: -4rem -2.5rem 0;
 }
 
 .blog-post-flex {
@@ -357,7 +358,7 @@ body {
 .blog-post-toc {
   position: fixed;
   left: 0;
-  top: 0;
+  top: 4rem;
   bottom: 0;
   width: 14rem;
   z-index: 40;
@@ -374,7 +375,7 @@ body {
 .blog-post-divider {
   position: fixed;
   left: 14rem;
-  top: 0;
+  top: 4rem;
   bottom: 0;
   width: 1px;
   background: var(--color-border);

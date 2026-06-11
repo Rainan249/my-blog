@@ -14,7 +14,7 @@ const navLinks = [
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border">
+  <header class="fixed top-0 left-0 right-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border">
     <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
       <router-link to="/" class="font-heading text-xl font-bold text-primary tracking-tight hover:text-accent transition-colors duration-200">
         雨鹿
