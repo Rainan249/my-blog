@@ -26,7 +26,6 @@ function tokensToText(tokens) {
 
 const headings = ref([])
 const activeId = ref('')
-const collapsedGroups = ref(new Set())
 const contentEl = ref(null)
 
 const formattedContent = computed(() => {
@@ -105,26 +104,37 @@ const formattedContent = computed(() => {
   return html
 })
 
-// Build tree: each H2 is a group, H3-H6 are children
+// Build flat list with depth info
 const tocTree = computed(() => {
-  const tree = []
-  for (const h of headings.value) {
-    if (h.depth === 2) {
-      tree.push({ ...h, children: [], collapsed: false })
-    } else if (tree.length > 0) {
-      tree[tree.length - 1].children.push(h)
-    }
-  }
-  return tree
+  return headings.value.map((h) => ({ ...h }))
 })
 
 // Color map for each heading depth (inactive state)
 const depthColorMap = {
-  2: 'text-primary',
-  3: 'text-accent/80',
-  4: 'text-amber-600',
-  5: 'text-cyan-600',
-  6: 'text-text-muted',
+  1: 'text-primary font-bold',
+  2: 'text-accent font-semibold',
+  3: 'text-amber-600',
+  4: 'text-cyan-600',
+  5: 'text-purple-600',
+  6: 'text-text-muted italic',
+}
+
+const depthIndentMap = {
+  1: 'ml-0',
+  2: 'ml-0',
+  3: 'ml-4',
+  4: 'ml-8',
+  5: 'ml-12',
+  6: 'ml-12',
+}
+
+const depthSizeMap = {
+  1: 'text-sm font-bold',
+  2: 'text-sm font-medium',
+  3: 'text-xs',
+  4: 'text-xs',
+  5: 'text-[11px]',
+  6: 'text-[11px]',
 }
 
 function tocItemClass(depth, id) {
@@ -132,19 +142,6 @@ function tocItemClass(depth, id) {
   if (isActive) return 'border-accent text-accent'
   const color = depthColorMap[depth] || 'text-text-muted'
   return `border-transparent ${color} hover:text-accent hover:border-accent/30`
-}
-
-function toggleGroup(id) {
-  if (collapsedGroups.value.has(id)) {
-    collapsedGroups.value.delete(id)
-  } else {
-    collapsedGroups.value.add(id)
-  }
-  collapsedGroups.value = new Set(collapsedGroups.value)
-}
-
-function isGroupCollapsed(id) {
-  return collapsedGroups.value.has(id)
 }
 
 // Intersection observer for active heading
@@ -158,12 +155,6 @@ function observeHeadings() {
       for (const entry of entries) {
         if (entry.isIntersecting) {
           activeId.value = entry.target.id
-          // Auto-expand parent group when a child heading is active
-          for (const group of tocTree.value) {
-            if (group.children.some((c) => c.id === entry.target.id)) {
-              if (isGroupCollapsed(group.id)) toggleGroup(group.id)
-            }
-          }
         }
       }
     },
@@ -196,53 +187,19 @@ function scrollToHeading(id) {
         <div class="blog-post-toc-inner">
           <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-4 px-1">目录</h4>
           <nav class="space-y-0.5">
-            <div v-for="group in tocTree" :key="group.id">
-              <!-- H2 group header -->
-              <div class="flex items-center gap-1">
-                <button
-                  v-if="group.children.length"
-                  @click="toggleGroup(group.id)"
-                  class="w-4 h-4 flex items-center justify-center rounded text-text-muted hover:text-accent transition-colors cursor-pointer flex-shrink-0"
-                >
-                  <svg
-                    class="w-3 h-3 transition-transform duration-200"
-                    :class="isGroupCollapsed(group.id) ? '-rotate-90' : ''"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <button
-                  v-else
-                  class="w-4 h-4 flex-shrink-0"
-                />
-                <button
-                  @click="scrollToHeading(group.id)"
-                  class="flex-1 text-left text-sm font-medium py-1 border-l-2 pl-2 transition-all duration-200 cursor-pointer"
-                  :class="tocItemClass(group.depth, group.id)"
-                >
-                  {{ group.text }}
-                </button>
-              </div>
-
-              <!-- Children (H3/H4) -->
-              <transition name="toc-group">
-                <div v-show="!isGroupCollapsed(group.id)" class="toc-group-children">
-                  <button
-                    v-for="child in group.children"
-                    :key="child.id"
-                    @click="scrollToHeading(child.id)"
-                    class="block w-full text-left text-xs py-0.5 border-l-2 pl-2 transition-all duration-200 cursor-pointer"
-                    :class="[
-                      child.depth >= 4 ? 'ml-6' : 'ml-4',
-                      tocItemClass(child.depth, child.id),
-                    ]"
-                  >
-                    {{ child.text }}
-                  </button>
-                </div>
-              </transition>
-            </div>
+            <button
+              v-for="h in tocTree"
+              :key="h.id"
+              @click="scrollToHeading(h.id)"
+              class="block w-full text-left py-1 border-l-2 pl-2 transition-all duration-200 cursor-pointer truncate"
+              :class="[
+                depthIndentMap[h.depth],
+                depthSizeMap[h.depth],
+                tocItemClass(h.depth, h.id),
+              ]"
+            >
+              {{ h.text }}
+            </button>
           </nav>
         </div>
       </aside>
