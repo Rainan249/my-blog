@@ -309,3 +309,36 @@ body {
 .prose-custom .task-list-item input {
   margin-right: 0.5rem;
 }
+
+/* ── TOC transitions ── */
+.toc-enter-active,
+.toc-leave-active {
+  transition: all 0.3s ease;
+  max-width: 14rem;
+}
+
+.toc-enter-from,
+.toc-leave-to {
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  padding: 0;
+}
+
+/* ── TOC scrollbar ── */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}

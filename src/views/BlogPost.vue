@@ -27,6 +27,7 @@ function tokensToText(tokens) {
 
 const headings = ref([])
 const activeId = ref('')
+const tocOpen = ref(true)
 
 const formattedContent = computed(() => {
   if (!post.value) return ''
@@ -138,33 +139,59 @@ function scrollToHeading(id) {
 
 <template>
   <article v-if="post" class="max-w-7xl mx-auto px-6 py-16">
-    <div class="flex gap-10">
+    <div class="flex gap-0">
       <!-- TOC Sidebar (left) -->
-      <aside v-if="headings.length > 1" class="hidden lg:block w-56 flex-shrink-0">
-        <div class="sticky top-24">
-          <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-4">目录</h4>
-          <nav class="space-y-1">
-            <button
-              v-for="h in headings"
-              :key="h.id"
-              @click="scrollToHeading(h.id)"
-              class="block w-full text-left text-sm py-1 border-l-2 pl-3 transition-all duration-200 cursor-pointer"
-              :class="[
-                h.depth === 2 ? 'font-medium' : 'text-xs',
-                activeId === h.id
-                  ? 'border-accent text-accent'
-                  : 'border-transparent text-text-muted hover:text-text hover:border-border',
-                h.depth === 3 ? 'ml-3' : h.depth === 4 ? 'ml-6' : '',
-              ]"
-            >
-              {{ h.text }}
-            </button>
-          </nav>
-        </div>
+      <aside v-if="headings.length > 1" class="hidden lg:flex flex-shrink-0 items-start">
+        <!-- Collapse toggle -->
+        <button
+          @click="tocOpen = !tocOpen"
+          class="sticky top-24 mt-1 w-6 h-6 flex items-center justify-center rounded-md border border-border text-text-muted hover:text-accent hover:border-accent transition-all duration-200 cursor-pointer flex-shrink-0"
+          :title="tocOpen ? '收起目录' : '展开目录'"
+        >
+          <svg
+            class="w-3.5 h-3.5 transition-transform duration-300"
+            :class="tocOpen ? '' : '-rotate-90'"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <!-- Divider -->
+        <div class="sticky top-24 h-[calc(100vh-8rem)] w-px bg-border ml-2 flex-shrink-0"></div>
+
+        <!-- TOC content -->
+        <transition name="toc">
+          <div
+            v-show="tocOpen"
+            class="w-52 ml-4 overflow-hidden"
+          >
+            <div class="sticky top-24 max-h-[calc(100vh-10rem)] overflow-y-auto pr-2 scrollbar-thin">
+              <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-4">目录</h4>
+              <nav class="space-y-0.5">
+                <button
+                  v-for="h in headings"
+                  :key="h.id"
+                  @click="scrollToHeading(h.id)"
+                  class="block w-full text-left text-sm py-1 border-l-2 pl-3 transition-all duration-200 cursor-pointer"
+                  :class="[
+                    h.depth === 2 ? 'font-medium' : 'text-xs',
+                    activeId === h.id
+                      ? 'border-accent text-accent'
+                      : 'border-transparent text-text-muted hover:text-text hover:border-border',
+                    h.depth === 3 ? 'ml-3' : h.depth === 4 ? 'ml-6' : '',
+                  ]"
+                >
+                  {{ h.text }}
+                </button>
+              </nav>
+            </div>
+          </div>
+        </transition>
       </aside>
 
       <!-- Main content -->
-      <div class="flex-1 min-w-0 max-w-3xl">
+      <div class="flex-1 min-w-0 max-w-3xl lg:ml-10">
         <!-- Back -->
         <router-link
           to="/blog"
