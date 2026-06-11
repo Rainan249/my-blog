@@ -342,3 +342,64 @@ body {
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
 }
+
+/* ── Blog post layout: independent scroll ── */
+.blog-post-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.blog-post-flex {
+  display: flex;
+  height: 100%;
+}
+
+.blog-post-toc {
+  width: 14rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.blog-post-toc-inner {
+  position: sticky;
+  top: 1rem;
+  height: calc(100vh - 2rem);
+  overflow-y: auto;
+  width: 100%;
+  padding: 0 0.5rem 2rem 1.5rem;
+}
+
+.blog-post-divider {
+  width: 1px;
+  background: var(--color-border);
+  flex-shrink: 0;
+  margin: 1.5rem 0;
+}
+
+.blog-post-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 2rem 2.5rem;
+  scroll-behavior: smooth;
+}
+
+/* TOC group collapse transition */
+.toc-group-enter-active,
+.toc-group-leave-active {
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+
+.toc-group-enter-from,
+.toc-group-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+
+.toc-group-enter-to,
+.toc-group-leave-from {
+  opacity: 1;
+  max-height: 500px;
+}

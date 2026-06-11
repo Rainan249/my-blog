@@ -13,7 +13,6 @@ onMounted(() => {
 
 const post = computed(() => findBySlug(route.params.slug))
 
-// Extract plain text from marked tokens
 function tokensToText(tokens) {
   if (!tokens) return ''
   return tokens
@@ -27,7 +26,8 @@ function tokensToText(tokens) {
 
 const headings = ref([])
 const activeId = ref('')
-const tocOpen = ref(true)
+const collapsedGroups = ref(new Set())
+const contentEl = ref(null)
 
 const formattedContent = computed(() => {
   if (!post.value) return ''
@@ -105,20 +105,53 @@ const formattedContent = computed(() => {
   return html
 })
 
+// Build tree: each H2 is a group, H3/H4 are children
+const tocTree = computed(() => {
+  const tree = []
+  for (const h of headings.value) {
+    if (h.depth === 2) {
+      tree.push({ ...h, children: [], collapsed: false })
+    } else if (tree.length > 0) {
+      tree[tree.length - 1].children.push(h)
+    }
+  }
+  return tree
+})
+
+function toggleGroup(id) {
+  if (collapsedGroups.value.has(id)) {
+    collapsedGroups.value.delete(id)
+  } else {
+    collapsedGroups.value.add(id)
+  }
+  collapsedGroups.value = new Set(collapsedGroups.value)
+}
+
+function isGroupCollapsed(id) {
+  return collapsedGroups.value.has(id)
+}
+
 // Intersection observer for active heading
 let observer = null
 
 function observeHeadings() {
   if (observer) observer.disconnect()
+  const root = contentEl.value
   observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
         if (entry.isIntersecting) {
           activeId.value = entry.target.id
+          // Auto-expand parent group when a child heading is active
+          for (const group of tocTree.value) {
+            if (group.children.some((c) => c.id === entry.target.id)) {
+              if (isGroupCollapsed(group.id)) toggleGroup(group.id)
+            }
+          }
         }
       }
     },
-    { rootMargin: '-80px 0px -60% 0px', threshold: 0 }
+    { root, rootMargin: '-60px 0px -70% 0px', threshold: 0 }
   )
   nextTick(() => {
     document.querySelectorAll('.md-heading').forEach((el) => observer.observe(el))
@@ -131,102 +164,119 @@ onUnmounted(() => {
 
 function scrollToHeading(id) {
   const el = document.getElementById(id)
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  if (el && contentEl.value) {
+    const container = contentEl.value
+    const top = el.offsetTop - container.offsetTop - 20
+    container.scrollTo({ top, behavior: 'smooth' })
   }
 }
 </script>
 
 <template>
-  <article v-if="post" class="max-w-7xl mx-auto px-6 py-16">
-    <div class="flex gap-0">
+  <article v-if="post" class="blog-post-layout">
+    <div class="blog-post-flex">
       <!-- TOC Sidebar (left) -->
-      <aside v-if="headings.length > 1" class="hidden lg:flex flex-shrink-0 items-start">
-        <!-- Collapse toggle -->
-        <button
-          @click="tocOpen = !tocOpen"
-          class="sticky top-24 mt-1 w-6 h-6 flex items-center justify-center rounded-md border border-border text-text-muted hover:text-accent hover:border-accent transition-all duration-200 cursor-pointer flex-shrink-0"
-          :title="tocOpen ? '收起目录' : '展开目录'"
-        >
-          <svg
-            class="w-3.5 h-3.5 transition-transform duration-300"
-            :class="tocOpen ? '' : '-rotate-90'"
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        <!-- Divider -->
-        <div class="sticky top-24 h-[calc(100vh-8rem)] w-px bg-border ml-2 flex-shrink-0"></div>
-
-        <!-- TOC content -->
-        <transition name="toc">
-          <div
-            v-show="tocOpen"
-            class="w-52 ml-4 overflow-hidden"
-          >
-            <div class="sticky top-24 max-h-[calc(100vh-10rem)] overflow-y-auto pr-2 scrollbar-thin">
-              <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-4">目录</h4>
-              <nav class="space-y-0.5">
+      <aside v-if="tocTree.length" class="blog-post-toc">
+        <div class="blog-post-toc-inner">
+          <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-4 px-1">目录</h4>
+          <nav class="space-y-0.5">
+            <div v-for="group in tocTree" :key="group.id">
+              <!-- H2 group header -->
+              <div class="flex items-center gap-1">
                 <button
-                  v-for="h in headings"
-                  :key="h.id"
-                  @click="scrollToHeading(h.id)"
-                  class="block w-full text-left text-sm py-1 border-l-2 pl-3 transition-all duration-200 cursor-pointer"
-                  :class="[
-                    h.depth === 2 ? 'font-medium' : 'text-xs',
-                    activeId === h.id
-                      ? 'border-accent text-accent'
-                      : 'border-transparent text-text-muted hover:text-text hover:border-border',
-                    h.depth === 3 ? 'ml-3' : h.depth === 4 ? 'ml-6' : '',
-                  ]"
+                  v-if="group.children.length"
+                  @click="toggleGroup(group.id)"
+                  class="w-4 h-4 flex items-center justify-center rounded text-text-muted hover:text-accent transition-colors cursor-pointer flex-shrink-0"
                 >
-                  {{ h.text }}
+                  <svg
+                    class="w-3 h-3 transition-transform duration-200"
+                    :class="isGroupCollapsed(group.id) ? '-rotate-90' : ''"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
-              </nav>
+                <button
+                  v-else
+                  class="w-4 h-4 flex-shrink-0"
+                />
+                <button
+                  @click="scrollToHeading(group.id)"
+                  class="flex-1 text-left text-sm font-medium py-1 border-l-2 pl-2 transition-all duration-200 cursor-pointer"
+                  :class="activeId === group.id
+                    ? 'border-accent text-accent'
+                    : 'border-transparent text-text hover:text-text hover:border-border'"
+                >
+                  {{ group.text }}
+                </button>
+              </div>
+
+              <!-- Children (H3/H4) -->
+              <transition name="toc-group">
+                <div v-show="!isGroupCollapsed(group.id)" class="toc-group-children">
+                  <button
+                    v-for="child in group.children"
+                    :key="child.id"
+                    @click="scrollToHeading(child.id)"
+                    class="block w-full text-left text-xs py-0.5 border-l-2 pl-2 transition-all duration-200 cursor-pointer"
+                    :class="[
+                      child.depth === 4 ? 'ml-6' : 'ml-4',
+                      activeId === child.id
+                        ? 'border-accent text-accent'
+                        : 'border-transparent text-text-muted hover:text-text hover:border-border',
+                    ]"
+                  >
+                    {{ child.text }}
+                  </button>
+                </div>
+              </transition>
             </div>
-          </div>
-        </transition>
+          </nav>
+        </div>
       </aside>
 
+      <!-- Divider -->
+      <div v-if="tocTree.length" class="blog-post-divider" />
+
       <!-- Main content -->
-      <div class="flex-1 min-w-0 max-w-3xl lg:ml-10">
-        <!-- Back -->
-        <router-link
-          to="/blog"
-          class="inline-flex items-center text-sm text-text-muted hover:text-accent transition-colors duration-200 mb-8 cursor-pointer"
-        >
-          &larr; 返回博客
-        </router-link>
-
-        <!-- Header -->
-        <header class="mb-10">
-          <div class="flex items-center gap-3 mb-4">
-            <span class="text-xs font-medium text-accent bg-accent-light px-2.5 py-1 rounded-full">
-              {{ post.category }}
-            </span>
-            <span class="text-xs text-text-muted">{{ post.readTime }}</span>
-          </div>
-          <h1 class="font-heading text-3xl md:text-4xl font-bold text-primary leading-tight mb-4">
-            {{ post.title }}
-          </h1>
-          <time class="text-sm text-text-muted">{{ post.date }}</time>
-        </header>
-
-        <hr class="border-border mb-10" />
-
-        <!-- Content -->
-        <div class="prose-custom" v-html="formattedContent"></div>
-
-        <!-- Back bottom -->
-        <div class="mt-12 pt-8 border-t border-border">
+      <div ref="contentEl" class="blog-post-content">
+        <div class="max-w-3xl mx-auto">
+          <!-- Back -->
           <router-link
             to="/blog"
-            class="inline-flex items-center text-sm font-medium text-accent hover:text-accent/80 transition-colors duration-200 cursor-pointer"
+            class="inline-flex items-center text-sm text-text-muted hover:text-accent transition-colors duration-200 mb-8 cursor-pointer"
           >
-            &larr; 返回博客列表
+            &larr; 返回博客
           </router-link>
+
+          <!-- Header -->
+          <header class="mb-10">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="text-xs font-medium text-accent bg-accent-light px-2.5 py-1 rounded-full">
+                {{ post.category }}
+              </span>
+              <span class="text-xs text-text-muted">{{ post.readTime }}</span>
+            </div>
+            <h1 class="font-heading text-3xl md:text-4xl font-bold text-primary leading-tight mb-4">
+              {{ post.title }}
+            </h1>
+            <time class="text-sm text-text-muted">{{ post.date }}</time>
+          </header>
+
+          <hr class="border-border mb-10" />
+
+          <!-- Content -->
+          <div class="prose-custom" v-html="formattedContent"></div>
+
+          <!-- Back bottom -->
+          <div class="mt-12 pt-8 border-t border-border pb-8">
+            <router-link
+              to="/blog"
+              class="inline-flex items-center text-sm font-medium text-accent hover:text-accent/80 transition-colors duration-200 cursor-pointer"
+            >
+              &larr; 返回博客列表
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
