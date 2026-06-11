@@ -1,5 +1,8 @@
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { posts as builtInPosts } from '../data/posts.js'
+
+// Reactive trigger — increment after every localStorage write
+const version = ref(0)
 
 function getCustomPosts() {
   return JSON.parse(localStorage.getItem('customPosts') || '[]')
@@ -7,6 +10,7 @@ function getCustomPosts() {
 
 function setCustomPosts(posts) {
   localStorage.setItem('customPosts', JSON.stringify(posts))
+  version.value++
 }
 
 function getDeletedIds() {
@@ -15,6 +19,7 @@ function getDeletedIds() {
 
 function setDeletedIds(ids) {
   localStorage.setItem('deletedPostIds', JSON.stringify(ids))
+  version.value++
 }
 
 function makeSlug(title) {
@@ -26,6 +31,8 @@ function makeSlug(title) {
 
 export function usePosts() {
   const allPosts = computed(() => {
+    // eslint-disable-next-line no-unused-expressions
+    version.value // track reactive dependency
     const deletedIds = getDeletedIds()
     const custom = getCustomPosts()
     const builtIn = builtInPosts.filter(p => !deletedIds.includes(p.id))
