@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { marked } from 'marked'
+import { marked, Renderer } from 'marked'
 import { usePosts } from '../composables/usePosts.js'
 
 const route = useRoute()
@@ -13,72 +13,87 @@ onMounted(() => {
 
 const post = computed(() => findBySlug(route.params.slug))
 
-// Configure marked
-marked.setOptions({
-  gfm: true,
-  breaks: false,
-})
+// Extract plain text from marked tokens
+function tokensToText(tokens) {
+  if (!tokens) return ''
+  return tokens
+    .map((t) => {
+      if (t.text) return t.text
+      if (t.tokens) return tokensToText(t.tokens)
+      return ''
+    })
+    .join('')
+}
 
 const headings = ref([])
 const activeId = ref('')
 
 const formattedContent = computed(() => {
   if (!post.value) return ''
-  const renderer = new marked.Renderer()
+  const renderer = new Renderer()
   const toc = []
 
-  renderer.heading = function ({ text, depth }) {
-    const id = text
+  renderer.heading = function ({ tokens, depth }) {
+    const rawText = tokensToText(tokens)
+    const id = rawText
       .toLowerCase()
-      .replace(/<[^>]+>/g, '')
       .replace(/[^a-z0-9一-鿿]+/g, '-')
       .replace(/^-|-$/g, '')
-    toc.push({ id, text: text.replace(/<[^>]+>/g, ''), depth })
-    return `<h${depth} id="${id}" class="md-heading md-h${depth}">${text}</h${depth}>`
+    toc.push({ id, text: rawText, depth })
+    const inner = this.parser.parseInline(tokens)
+    return `<h${depth} id="${id}" class="md-heading md-h${depth}">${inner}</h${depth}>\n`
   }
 
   renderer.code = function ({ text, lang }) {
     const langLabel = lang || ''
-    return `<div class="md-code-block"><div class="md-code-lang">${langLabel}</div><pre><code class="language-${langLabel}">${text}</code></pre></div>`
+    return `<div class="md-code-block"><div class="md-code-lang">${langLabel}</div><pre><code class="language-${langLabel}">${text}</code></pre></div>\n`
   }
 
   renderer.table = function ({ header, rows }) {
-    const headerCells = header.map(
-      (cell) => `<th class="md-table-th">${cell.text}</th>`
-    ).join('')
-    const bodyRows = rows.map((row) => {
-      const cells = row.map(
-        (cell) => `<td class="md-table-td">${cell.text}</td>`
-      ).join('')
-      return `<tr class="md-table-tr">${cells}</tr>`
-    }).join('')
-    return `<div class="md-table-wrap"><table class="md-table"><thead><tr class="md-table-tr">${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></div>`
+    const headerCells = header
+      .map((cell) => `<th class="md-table-th">${this.parser.parseInline(cell.tokens)}</th>`)
+      .join('')
+    const bodyRows = rows
+      .map((row) => {
+        const cells = row
+          .map((cell) => `<td class="md-table-td">${this.parser.parseInline(cell.tokens)}</td>`)
+          .join('')
+        return `<tr class="md-table-tr">${cells}</tr>`
+      })
+      .join('')
+    return `<div class="md-table-wrap"><table class="md-table"><thead><tr class="md-table-tr">${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></div>\n`
   }
 
-  renderer.blockquote = function ({ text }) {
-    return `<blockquote class="md-blockquote">${text}</blockquote>`
+  renderer.blockquote = function ({ tokens }) {
+    return `<blockquote class="md-blockquote">${this.parser.parse(tokens)}</blockquote>\n`
   }
 
-  renderer.list = function ({ body, ordered }) {
-    const tag = ordered ? 'ol' : 'ul'
-    const cls = ordered ? 'md-list md-list-ol' : 'md-list md-list-ul'
-    return `<${tag} class="${cls}">${body}</${tag}>`
+  renderer.list = function (token) {
+    const tag = token.ordered ? 'ol' : 'ul'
+    const cls = token.ordered ? 'md-list md-list-ol' : 'md-list md-list-ul'
+    const body = token.items.map((item) => this.listitem(item)).join('')
+    return `<${tag} class="${cls}">${body}</${tag}>\n`
   }
 
-  renderer.listitem = function ({ text }) {
-    return `<li class="md-list-item">${text}</li>`
+  renderer.listitem = function ({ tokens }) {
+    return `<li class="md-list-item">${this.parser.parse(tokens)}</li>\n`
   }
 
-  renderer.link = function ({ href, text }) {
+  renderer.link = function ({ href, tokens }) {
+    const text = this.parser.parseInline(tokens)
     return `<a href="${href}" target="_blank" rel="noopener" class="md-link">${text}</a>`
   }
 
   renderer.image = function ({ href, text }) {
-    return `<figure class="md-figure"><img src="${href}" alt="${text}" class="md-img" loading="lazy" />${text ? `<figcaption class="mdfigcaption">${text}</figcaption>` : ''}</figure>`
+    return `<figure class="md-figure"><img src="${href}" alt="${text}" class="md-img" loading="lazy" />${text ? `<figcaption class="md-figcaption">${text}</figcaption>` : ''}</figure>\n`
   }
 
   renderer.hr = function () {
-    return `<hr class="md-hr" />`
+    return `<hr class="md-hr" />\n`
+  }
+
+  renderer.paragraph = function ({ tokens }) {
+    return `<p class="md-paragraph">${this.parser.parseInline(tokens)}</p>\n`
   }
 
   const html = marked.parse(post.value.content, { renderer })

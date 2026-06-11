@@ -101,6 +101,12 @@ body {
 }
 
 /* Paragraphs */
+.md-paragraph {
+  margin-bottom: 1.25rem;
+  color: var(--color-text);
+  line-height: 1.85;
+}
+
 .prose-custom > p {
   margin-bottom: 1.25rem;
   color: var(--color-text);
