@@ -157,13 +157,31 @@ async function createPost(post) {
     excerpt: post.content.replace(/[#*`>\-\n]/g, ' ').slice(0, 120) + '...',
   }
   const body = buildMd(meta, post.content)
-  return request(`/repos/${REPO}/contents/${CONTENT_DIR}/${filename}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      message: `feat: add post "${post.title}"`,
-      content: btoa(unescape(encodeURIComponent(body))),
-    }),
-  })
+  const contentBase64 = btoa(unescape(encodeURIComponent(body)))
+
+  try {
+    return await request(`/repos/${REPO}/contents/${CONTENT_DIR}/${filename}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: `feat: add post "${post.title}"`,
+        content: contentBase64,
+      }),
+    })
+  } catch (e) {
+    // File already exists — fetch SHA and update instead
+    if (e.message.includes('sha')) {
+      const existing = await request(`/repos/${REPO}/contents/${CONTENT_DIR}/${filename}`)
+      return request(`/repos/${REPO}/contents/${CONTENT_DIR}/${filename}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message: `update: "${post.title}"`,
+          content: contentBase64,
+          sha: existing.sha,
+        }),
+      })
+    }
+    throw e
+  }
 }
 
 async function updatePost(filename, sha, post) {
