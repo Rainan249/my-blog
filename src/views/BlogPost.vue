@@ -113,9 +113,9 @@ const tocTree = computed(() => {
 const depthColorMap = {
   1: 'text-primary font-bold',
   2: 'text-accent font-semibold',
-  3: 'text-amber-600',
-  4: 'text-cyan-600',
-  5: 'text-purple-600',
+  3: 'text-[#5C7A3A]',
+  4: 'text-[#B8860B]',
+  5: 'text-[#6B7F5E]',
   6: 'text-text-muted italic',
 }
 

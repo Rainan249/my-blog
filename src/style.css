@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #18181B;
-  --color-secondary: #3F3F46;
-  --color-accent: #EC4899;
-  --color-accent-light: #FDF2F8;
-  --color-bg: #FAFAFA;
-  --color-surface: #FFFFFF;
-  --color-text: #09090B;
-  --color-text-muted: #71717A;
-  --color-border: #E4E4E7;
-  --color-border-light: #F4F4F5;
+  --color-primary: #3C2415;
+  --color-secondary: #6B4C3B;
+  --color-accent: #C45D3E;
+  --color-accent-light: #FDF0E6;
+  --color-bg: #FAF5EB;
+  --color-surface: #FFFCF5;
+  --color-text: #2C1810;
+  --color-text-muted: #8B7D6B;
+  --color-border: #D4C5B2;
+  --color-border-light: #E8DDD0;
 
   --font-heading: 'Libre Bodoni', 'Noto Serif SC', Georgia, serif;
   --font-body: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
@@ -84,22 +84,22 @@ body {
   margin-top: 2rem;
   margin-bottom: 0.5rem;
   padding-left: 0.6rem;
-  color: var(--color-secondary);
-  border-left: 3px solid var(--color-secondary);
+  color: #5C7A3A;
+  border-left: 3px solid #5C7A3A;
 }
 
 .md-h4 {
   font-size: 1.1rem;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
-  color: #d97706;
+  color: #B8860B;
 }
 
 .md-h5 {
   font-size: 1rem;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
-  color: #0891b2;
+  color: #6B7F5E;
 }
 
 .md-h6 {
@@ -173,7 +173,7 @@ body {
 .md-code-block pre {
   margin: 0;
   padding: 1.25rem;
-  background: #1e1e2e;
+  background: #2C2117;
   overflow-x: auto;
 }
 
@@ -181,7 +181,7 @@ body {
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.875rem;
   line-height: 1.7;
-  color: #cdd6f4;
+  color: #E8D5C4;
 }
 
 /* Blockquote */
