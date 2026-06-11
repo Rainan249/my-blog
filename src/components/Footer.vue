@@ -29,7 +29,7 @@ const currentYear = new Date().getFullYear()
           <h4 class="text-sm font-semibold text-primary mb-3">社交</h4>
           <ul class="space-y-2">
             <li><a href="https://github.com/Rainan249" target="_blank" class="text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer">GitHub</a></li>
-            <li><a href="https://blog.csdn.net/" target="_blank" class="text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer">CSDN</a></li>
+            <li><a href="https://blog.csdn.net/2502_90388158" target="_blank" class="text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer">CSDN</a></li>
             <li><a href="mailto:2913756838@qq.com" class="text-sm text-text-muted hover:text-accent transition-colors duration-200 cursor-pointer">Email</a></li>
           </ul>
         </div>

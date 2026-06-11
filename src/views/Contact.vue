@@ -35,7 +35,7 @@
         </a>
 
         <a
-          href="https://blog.csdn.net/"
+          href="https://blog.csdn.net/2502_90388158"
           target="_blank"
           class="flex items-center gap-4 bg-surface border border-border rounded-xl p-5 hover:border-accent/30 transition-colors duration-200 cursor-pointer"
         >
