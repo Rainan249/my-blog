@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { marked, Renderer } from 'marked'
 import { usePosts } from '../composables/usePosts.js'
@@ -27,6 +27,7 @@ function tokensToText(tokens) {
 const headings = ref([])
 const activeId = ref('')
 const contentEl = ref(null)
+const tocInnerEl = ref(null)
 
 const formattedContent = computed(() => {
   if (!post.value) return ''
@@ -139,9 +140,9 @@ const depthSizeMap = {
 
 function tocItemClass(depth, id) {
   const isActive = activeId.value === id
-  if (isActive) return 'border-accent text-accent'
+  if (isActive) return 'border-accent text-accent bg-accent/5 shadow-sm shadow-accent/10 font-medium'
   const color = depthColorMap[depth] || 'text-text-muted'
-  return `border-transparent ${color} hover:text-accent hover:border-accent/30`
+  return `border-transparent ${color} hover:text-accent hover:border-accent/30 hover:bg-accent/5`
 }
 
 // Intersection observer for active heading
@@ -177,6 +178,23 @@ function scrollToHeading(id) {
     container.scrollTo({ top, behavior: 'smooth' })
   }
 }
+
+// Auto-scroll TOC to keep active item visible
+watch(activeId, (id) => {
+  if (!id || !tocInnerEl.value) return
+  const btn = document.getElementById('toc-' + id)
+  if (!btn) return
+  const container = tocInnerEl.value
+  const btnTop = btn.offsetTop - container.offsetTop
+  const btnHeight = btn.offsetHeight
+  const scrollTop = container.scrollTop
+  const containerHeight = container.clientHeight
+  if (btnTop < scrollTop + 40) {
+    container.scrollTo({ top: btnTop - 40, behavior: 'smooth' })
+  } else if (btnTop + btnHeight > scrollTop + containerHeight - 20) {
+    container.scrollTo({ top: btnTop + btnHeight - containerHeight + 20, behavior: 'smooth' })
+  }
+})
 </script>
 
 <template>
@@ -184,14 +202,15 @@ function scrollToHeading(id) {
     <div class="blog-post-flex">
       <!-- TOC Sidebar (left) -->
       <aside v-if="tocTree.length" class="blog-post-toc">
-        <div class="blog-post-toc-inner">
+        <div ref="tocInnerEl" class="blog-post-toc-inner">
           <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-4 px-1">目录</h4>
           <nav class="space-y-0.5">
             <button
               v-for="h in tocTree"
               :key="h.id"
+              :id="'toc-' + h.id"
               @click="scrollToHeading(h.id)"
-              class="block w-full text-left py-1 border-l-2 pl-2 transition-all duration-200 cursor-pointer truncate"
+              class="block w-full text-left py-1.5 border-l-2 pl-2 transition-all duration-300 cursor-pointer truncate rounded-r-lg"
               :class="[
                 depthIndentMap[h.depth],
                 depthSizeMap[h.depth],
