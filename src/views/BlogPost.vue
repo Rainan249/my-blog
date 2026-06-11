@@ -1,6 +1,7 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import { marked } from 'marked'
 import { usePosts } from '../composables/usePosts.js'
 
 const route = useRoute()
@@ -12,60 +13,180 @@ onMounted(() => {
 
 const post = computed(() => findBySlug(route.params.slug))
 
+// Configure marked
+marked.setOptions({
+  gfm: true,
+  breaks: false,
+})
+
+const headings = ref([])
+const activeId = ref('')
+
 const formattedContent = computed(() => {
   if (!post.value) return ''
-  let html = post.value.content
-    .replace(/## (.*)/g, '<h2 class="font-heading text-xl font-bold text-primary mt-8 mb-4">$1</h2>')
-    .replace(/### (.*)/g, '<h3 class="font-heading text-lg font-semibold text-primary mt-6 mb-3">$1</h3>')
-    .replace(/```js\n([\s\S]*?)```/g, '<pre class="bg-primary text-white/90 rounded-lg p-4 my-4 overflow-x-auto text-sm"><code>$1</code></pre>')
-    .replace(/```css\n([\s\S]*?)```/g, '<pre class="bg-primary text-white/90 rounded-lg p-4 my-4 overflow-x-auto text-sm"><code>$1</code></pre>')
-    .replace(/```([\s\S]*?)```/g, '<pre class="bg-primary text-white/90 rounded-lg p-4 my-4 overflow-x-auto text-sm"><code>$1</code></pre>')
-    .replace(/`([^`]+)`/g, '<code class="bg-accent-light text-accent px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
-    .replace(/- (.*)/g, '<li class="ml-4 mb-1 text-text-muted">$1</li>')
-    .replace(/\n\n/g, '</p><p class="text-text-muted leading-relaxed mb-4">')
-    .replace(/^/, '<p class="text-text-muted leading-relaxed mb-4">')
-    .replace(/$/, '</p>')
+  const renderer = new marked.Renderer()
+  const toc = []
+
+  renderer.heading = function ({ text, depth }) {
+    const id = text
+      .toLowerCase()
+      .replace(/<[^>]+>/g, '')
+      .replace(/[^a-z0-9一-鿿]+/g, '-')
+      .replace(/^-|-$/g, '')
+    toc.push({ id, text: text.replace(/<[^>]+>/g, ''), depth })
+    return `<h${depth} id="${id}" class="md-heading md-h${depth}">${text}</h${depth}>`
+  }
+
+  renderer.code = function ({ text, lang }) {
+    const langLabel = lang || ''
+    return `<div class="md-code-block"><div class="md-code-lang">${langLabel}</div><pre><code class="language-${langLabel}">${text}</code></pre></div>`
+  }
+
+  renderer.table = function ({ header, rows }) {
+    const headerCells = header.map(
+      (cell) => `<th class="md-table-th">${cell.text}</th>`
+    ).join('')
+    const bodyRows = rows.map((row) => {
+      const cells = row.map(
+        (cell) => `<td class="md-table-td">${cell.text}</td>`
+      ).join('')
+      return `<tr class="md-table-tr">${cells}</tr>`
+    }).join('')
+    return `<div class="md-table-wrap"><table class="md-table"><thead><tr class="md-table-tr">${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></div>`
+  }
+
+  renderer.blockquote = function ({ text }) {
+    return `<blockquote class="md-blockquote">${text}</blockquote>`
+  }
+
+  renderer.list = function ({ body, ordered }) {
+    const tag = ordered ? 'ol' : 'ul'
+    const cls = ordered ? 'md-list md-list-ol' : 'md-list md-list-ul'
+    return `<${tag} class="${cls}">${body}</${tag}>`
+  }
+
+  renderer.listitem = function ({ text }) {
+    return `<li class="md-list-item">${text}</li>`
+  }
+
+  renderer.link = function ({ href, text }) {
+    return `<a href="${href}" target="_blank" rel="noopener" class="md-link">${text}</a>`
+  }
+
+  renderer.image = function ({ href, text }) {
+    return `<figure class="md-figure"><img src="${href}" alt="${text}" class="md-img" loading="lazy" />${text ? `<figcaption class="mdfigcaption">${text}</figcaption>` : ''}</figure>`
+  }
+
+  renderer.hr = function () {
+    return `<hr class="md-hr" />`
+  }
+
+  const html = marked.parse(post.value.content, { renderer })
+  nextTick(() => {
+    headings.value = toc
+    if (toc.length) observeHeadings()
+  })
   return html
 })
+
+// Intersection observer for active heading
+let observer = null
+
+function observeHeadings() {
+  if (observer) observer.disconnect()
+  observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          activeId.value = entry.target.id
+        }
+      }
+    },
+    { rootMargin: '-80px 0px -60% 0px', threshold: 0 }
+  )
+  nextTick(() => {
+    document.querySelectorAll('.md-heading').forEach((el) => observer.observe(el))
+  })
+}
+
+onUnmounted(() => {
+  if (observer) observer.disconnect()
+})
+
+function scrollToHeading(id) {
+  const el = document.getElementById(id)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
 </script>
 
 <template>
-  <article v-if="post" class="max-w-3xl mx-auto px-6 py-16">
-    <!-- Back -->
-    <router-link
-      to="/blog"
-      class="inline-flex items-center text-sm text-text-muted hover:text-accent transition-colors duration-200 mb-8 cursor-pointer"
-    >
-      &larr; 返回博客
-    </router-link>
+  <article v-if="post" class="max-w-7xl mx-auto px-6 py-16">
+    <div class="flex gap-10">
+      <!-- TOC Sidebar (left) -->
+      <aside v-if="headings.length > 1" class="hidden lg:block w-56 flex-shrink-0">
+        <div class="sticky top-24">
+          <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-4">目录</h4>
+          <nav class="space-y-1">
+            <button
+              v-for="h in headings"
+              :key="h.id"
+              @click="scrollToHeading(h.id)"
+              class="block w-full text-left text-sm py-1 border-l-2 pl-3 transition-all duration-200 cursor-pointer"
+              :class="[
+                h.depth === 2 ? 'font-medium' : 'text-xs',
+                activeId === h.id
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-text-muted hover:text-text hover:border-border',
+                h.depth === 3 ? 'ml-3' : h.depth === 4 ? 'ml-6' : '',
+              ]"
+            >
+              {{ h.text }}
+            </button>
+          </nav>
+        </div>
+      </aside>
 
-    <!-- Header -->
-    <header class="mb-10">
-      <div class="flex items-center gap-3 mb-4">
-        <span class="text-xs font-medium text-accent bg-accent-light px-2.5 py-1 rounded-full">
-          {{ post.category }}
-        </span>
-        <span class="text-xs text-text-muted">{{ post.readTime }}</span>
+      <!-- Main content -->
+      <div class="flex-1 min-w-0 max-w-3xl">
+        <!-- Back -->
+        <router-link
+          to="/blog"
+          class="inline-flex items-center text-sm text-text-muted hover:text-accent transition-colors duration-200 mb-8 cursor-pointer"
+        >
+          &larr; 返回博客
+        </router-link>
+
+        <!-- Header -->
+        <header class="mb-10">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-xs font-medium text-accent bg-accent-light px-2.5 py-1 rounded-full">
+              {{ post.category }}
+            </span>
+            <span class="text-xs text-text-muted">{{ post.readTime }}</span>
+          </div>
+          <h1 class="font-heading text-3xl md:text-4xl font-bold text-primary leading-tight mb-4">
+            {{ post.title }}
+          </h1>
+          <time class="text-sm text-text-muted">{{ post.date }}</time>
+        </header>
+
+        <hr class="border-border mb-10" />
+
+        <!-- Content -->
+        <div class="prose-custom" v-html="formattedContent"></div>
+
+        <!-- Back bottom -->
+        <div class="mt-12 pt-8 border-t border-border">
+          <router-link
+            to="/blog"
+            class="inline-flex items-center text-sm font-medium text-accent hover:text-accent/80 transition-colors duration-200 cursor-pointer"
+          >
+            &larr; 返回博客列表
+          </router-link>
+        </div>
       </div>
-      <h1 class="font-heading text-3xl md:text-4xl font-bold text-primary leading-tight mb-4">
-        {{ post.title }}
-      </h1>
-      <time class="text-sm text-text-muted">{{ post.date }}</time>
-    </header>
-
-    <hr class="border-border mb-10" />
-
-    <!-- Content -->
-    <div class="prose-custom" v-html="formattedContent"></div>
-
-    <!-- Back bottom -->
-    <div class="mt-12 pt-8 border-t border-border">
-      <router-link
-        to="/blog"
-        class="inline-flex items-center text-sm font-medium text-accent hover:text-accent/80 transition-colors duration-200 cursor-pointer"
-      >
-        &larr; 返回博客列表
-      </router-link>
     </div>
   </article>
 
