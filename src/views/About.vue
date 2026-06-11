@@ -34,17 +34,6 @@
             喜欢探索新的技术，记录学习过程中的点滴，也希望通过这个博客和大家分享交流。
           </p>
         </div>
-
-        <h2 class="font-heading text-2xl font-bold text-primary mt-12 mb-6">联系方式</h2>
-        <p class="text-text-muted leading-relaxed">
-          如果你想交流技术、合作项目，或者只是想打个招呼，欢迎通过邮件联系我。我会尽快回复你的消息。
-        </p>
-        <router-link
-          to="/contact"
-          class="inline-flex items-center mt-4 px-5 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent/90 transition-colors duration-200 cursor-pointer"
-        >
-          联系我
-        </router-link>
       </div>
     </div>
   </section>

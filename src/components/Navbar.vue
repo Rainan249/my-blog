@@ -33,13 +33,6 @@ const navLinks = [
         </li>
       </ul>
 
-      <router-link
-        to="/write"
-        class="hidden md:inline-flex items-center px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent/90 transition-colors duration-200 cursor-pointer"
-      >
-        写文章
-      </router-link>
-
       <!-- Mobile hamburger -->
       <button
         class="md:hidden p-2 cursor-pointer"
@@ -64,15 +57,6 @@ const navLinks = [
             @click="mobileOpen = false"
           >
             {{ link.name }}
-          </router-link>
-        </li>
-        <li>
-          <router-link
-            to="/write"
-            class="block text-sm font-medium py-2 text-accent transition-colors duration-200 cursor-pointer"
-            @click="mobileOpen = false"
-          >
-            写文章
           </router-link>
         </li>
       </ul>

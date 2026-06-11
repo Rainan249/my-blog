@@ -55,51 +55,18 @@ const recentPosts = computed(() => allPosts.value.slice(0, 3))
 
   <!-- About Teaser -->
   <section class="bg-surface border-y border-border">
-    <div class="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-      <div>
-        <p class="text-sm font-medium text-accent mb-3 tracking-wide uppercase">关于我</p>
-        <h2 class="font-heading text-2xl font-bold text-primary mb-4">热爱技术，不断学习</h2>
-        <p class="text-text-muted leading-relaxed mb-6">
-          一个学生，热衷于技术。喜欢探索新的东西，记录学习过程，也希望通过博客和大家交流。
-        </p>
-        <router-link
-          to="/about"
-          class="inline-flex items-center text-sm font-medium text-accent hover:text-accent/80 transition-colors duration-200 cursor-pointer"
-        >
-          阅读更多 &rarr;
-        </router-link>
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="bg-bg border border-border rounded-xl p-5 text-center">
-          <p class="font-heading text-3xl font-bold text-primary">5</p>
-          <p class="text-xs text-text-muted mt-1">示例文章</p>
-        </div>
-        <div class="bg-bg border border-border rounded-xl p-5 text-center">
-          <p class="font-heading text-3xl font-bold text-primary">Vue</p>
-          <p class="text-xs text-text-muted mt-1">技术栈</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Newsletter -->
-  <section class="max-w-6xl mx-auto px-6 py-16">
-    <div class="max-w-xl mx-auto text-center">
-      <h2 class="font-heading text-2xl font-bold text-primary mb-3">订阅更新</h2>
-      <p class="text-sm text-text-muted mb-6">获取最新文章推送，不错过任何精彩内容。</p>
-      <form class="flex gap-3" @submit.prevent>
-        <input
-          type="email"
-          placeholder="your@email.com"
-          class="flex-1 px-4 py-3 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:border-accent transition-colors duration-200"
-        />
-        <button
-          type="submit"
-          class="px-6 py-3 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent/90 transition-colors duration-200 cursor-pointer"
-        >
-          订阅
-        </button>
-      </form>
+    <div class="max-w-6xl mx-auto px-6 py-16">
+      <p class="text-sm font-medium text-accent mb-3 tracking-wide uppercase">关于我</p>
+      <h2 class="font-heading text-2xl font-bold text-primary mb-4">热爱技术，不断学习</h2>
+      <p class="text-text-muted leading-relaxed mb-6 max-w-xl">
+        一个学生，热衷于技术。喜欢探索新的东西，记录学习过程，也希望通过博客和大家交流。
+      </p>
+      <router-link
+        to="/about"
+        class="inline-flex items-center text-sm font-medium text-accent hover:text-accent/80 transition-colors duration-200 cursor-pointer"
+      >
+        阅读更多 &rarr;
+      </router-link>
     </div>
   </section>
 </template>
