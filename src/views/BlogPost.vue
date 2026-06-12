@@ -170,18 +170,23 @@ onUnmounted(() => {
   if (observer) observer.disconnect()
 })
 
+let isClickScrolling = false
+
 function scrollToHeading(id) {
   const el = document.getElementById(id)
   if (el && contentEl.value) {
+    isClickScrolling = true
     const container = contentEl.value
     const top = el.offsetTop - container.offsetTop - 20
     container.scrollTo({ top, behavior: 'smooth' })
+    activeId.value = id
+    setTimeout(() => { isClickScrolling = false }, 600)
   }
 }
 
-// Auto-scroll TOC to keep active item visible
+// Auto-scroll TOC to keep active item visible (only for user scroll, skip after click)
 watch(activeId, (id) => {
-  if (!id || !tocInnerEl.value) return
+  if (!id || !tocInnerEl.value || isClickScrolling) return
   const btn = document.getElementById('toc-' + id)
   if (!btn) return
   const container = tocInnerEl.value
@@ -190,9 +195,9 @@ watch(activeId, (id) => {
   const scrollTop = container.scrollTop
   const containerHeight = container.clientHeight
   if (btnTop < scrollTop + 40) {
-    container.scrollTo({ top: btnTop - 40, behavior: 'smooth' })
+    container.scrollTo({ top: btnTop - 40, behavior: 'instant' })
   } else if (btnTop + btnHeight > scrollTop + containerHeight - 20) {
-    container.scrollTo({ top: btnTop + btnHeight - containerHeight + 20, behavior: 'smooth' })
+    container.scrollTo({ top: btnTop + btnHeight - containerHeight + 20, behavior: 'instant' })
   }
 })
 </script>
