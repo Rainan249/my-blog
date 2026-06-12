@@ -170,8 +170,6 @@ onUnmounted(() => {
   if (observer) observer.disconnect()
 })
 
-let hoverLock = false
-
 function scrollToHeading(id) {
   const el = document.getElementById(id)
   if (el && contentEl.value) {
@@ -179,18 +177,6 @@ function scrollToHeading(id) {
     const top = el.offsetTop - container.offsetTop - 20
     container.scrollTo({ top, behavior: 'smooth' })
   }
-}
-
-function hoverScrollToHeading(id) {
-  if (hoverLock) return
-  const el = document.getElementById(id)
-  if (!el || !contentEl.value) return
-  const container = contentEl.value
-  const containerHeight = container.clientHeight
-  const top = el.offsetTop - container.offsetTop - containerHeight / 2 + el.offsetHeight / 2
-  container.scrollTo({ top, behavior: 'smooth' })
-  hoverLock = true
-  setTimeout(() => { hoverLock = false }, 400)
 }
 
 // Auto-scroll TOC to keep active item visible
@@ -224,7 +210,6 @@ watch(activeId, (id) => {
               :key="h.id"
               :id="'toc-' + h.id"
               @click="scrollToHeading(h.id)"
-              @mouseenter="hoverScrollToHeading(h.id)"
               class="block w-full text-left py-1.5 border-l-2 pl-2 transition-all duration-300 cursor-pointer truncate rounded-r-lg"
               :class="[
                 depthIndentMap[h.depth],
