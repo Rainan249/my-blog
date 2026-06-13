@@ -94,16 +94,21 @@ async function handleZip(file) {
       let content = await md.entry.async('text')
       const mdDir = md.path.substring(0, md.path.lastIndexOf('/') + 1)
 
+      // Log original content image references
+      const imgRefs = content.match(/!\[[^\]]*\]\([^)]+\)|!\[\[[^\]]+\]\]/g) || []
+      console.log(`[ImportZip] ${title}: mdDir="${mdDir}", image refs:`, imgRefs)
+
       function resolveImagePath(imgPath) {
         if (!imgPath || imgPath.startsWith('http') || imgPath.startsWith('data:')) return null
-        // Decode URL-encoded characters (e.g. %20 -> space)
         const decoded = decodeURIComponent(imgPath)
+        // Normalize: remove leading ./
+        const normalized = decoded.replace(/^\.\//, '')
         // Try resolving relative to md file directory
-        const resolved = mdDir + decoded
+        const resolved = mdDir + normalized
         if (uploadedImages[resolved]) return getImageRawUrl(uploadedImages[resolved])
         // Try resolving ../ prefix
         const parts = mdDir.split('/').filter(Boolean)
-        const upParts = decoded.split('/')
+        const upParts = normalized.split('/')
         let baseParts = [...parts]
         for (const p of upParts) {
           if (p === '..') baseParts.pop()
@@ -112,9 +117,9 @@ async function handleZip(file) {
         const resolved2 = baseParts.join('/')
         if (uploadedImages[resolved2]) return getImageRawUrl(uploadedImages[resolved2])
         // Fallback: match by filename only
-        const justFilename = decoded.split('/').pop()
+        const justFilename = normalized.split('/').pop()
         if (filenameToUrl[justFilename]) return filenameToUrl[justFilename]
-        console.warn('[ImportZip] Image not found:', { imgPath, decoded, mdDir, resolved, resolved2, justFilename })
+        console.warn(`[ImportZip] NOT FOUND: imgPath="${imgPath}" resolved="${resolved}" resolved2="${resolved2}" keys=`, Object.keys(uploadedImages))
         return null
       }
 
@@ -135,6 +140,10 @@ async function handleZip(file) {
         const url = resolveImagePath(src)
         return url ? `${prefix}${url}${suffix}` : match
       })
+
+      // Log rewritten content image references
+      const rewrittenRefs = content.match(/!\[[^\]]*\]\([^)]+\)|!\[\[[^\]]+\]\]/g) || []
+      console.log(`[ImportZip] ${title}: after rewrite:`, rewrittenRefs)
 
       await createPost({ title, category: category.value, content })
       results.value.push({ name: title, ok: true, msg: '文章发布成功' })
