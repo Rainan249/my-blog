@@ -63,10 +63,12 @@ async function handleZip(file) {
     try {
       const blob = await img.entry.async('blob')
       const base64 = await blobToBase64(blob)
+      console.log(`[ImportZip] Uploading image: ${filename}, size: ${blob.size} bytes, base64 length: ${base64.length}`)
       await uploadImage(filename, base64)
       uploadedImages[img.path] = filename
       results.value.push({ name: filename, ok: true, msg: '图片上传成功' })
     } catch (e) {
+      console.error(`[ImportZip] Image upload failed: ${filename}`, e)
       results.value.push({ name: filename, ok: false, msg: e.message })
     }
   }

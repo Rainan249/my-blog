@@ -241,7 +241,8 @@ async function uploadImage(filename, base64Data) {
       }),
     })
   } catch (e) {
-    if (e.message.includes('sha')) {
+    // On any error, try to get existing SHA and update instead
+    try {
       const existing = await request(`/repos/${REPO}/contents/${path}`)
       return request(`/repos/${REPO}/contents/${path}`, {
         method: 'PUT',
@@ -251,8 +252,9 @@ async function uploadImage(filename, base64Data) {
           sha: existing.sha,
         }),
       })
+    } catch {
+      throw e // throw original error if SHA fetch also fails
     }
-    throw e
   }
 }
 
