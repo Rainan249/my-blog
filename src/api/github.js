@@ -227,6 +227,39 @@ export function clearToken() {
   localStorage.removeItem('githubAuth')
 }
 
+const IMAGE_DIR = 'content/posts/images'
+const RAW_BASE = `https://raw.githubusercontent.com/${REPO}/main`
+
+async function uploadImage(filename, base64Data) {
+  const path = `${IMAGE_DIR}/${filename}`
+  try {
+    return await request(`/repos/${REPO}/contents/${path}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: `upload: ${filename}`,
+        content: base64Data,
+      }),
+    })
+  } catch (e) {
+    if (e.message.includes('sha')) {
+      const existing = await request(`/repos/${REPO}/contents/${path}`)
+      return request(`/repos/${REPO}/contents/${path}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message: `update: ${filename}`,
+          content: base64Data,
+          sha: existing.sha,
+        }),
+      })
+    }
+    throw e
+  }
+}
+
+function getImageRawUrl(filename) {
+  return `${RAW_BASE}/${IMAGE_DIR}/${filename}`
+}
+
 export {
   toSlug,
   fetchAllPosts,
@@ -234,4 +267,6 @@ export {
   createPost,
   updatePost,
   deletePost,
+  uploadImage,
+  getImageRawUrl,
 }
