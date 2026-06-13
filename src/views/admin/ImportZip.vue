@@ -71,6 +71,17 @@ async function handleZip(file) {
     }
   }
 
+  // Build a flat filename -> rawUrl lookup for fallback matching
+  const filenameToUrl = {}
+  for (const [zipPath, uploadName] of Object.entries(uploadedImages)) {
+    filenameToUrl[uploadName] = getImageRawUrl(uploadName)
+  }
+
+  // Debug: log all zip files and image mappings
+  console.log('[ImportZip] All zip files:', files.map(f => f.path))
+  console.log('[ImportZip] Image map:', uploadedImages)
+  console.log('[ImportZip] Filename lookup:', filenameToUrl)
+
   // Process markdown files
   for (let i = 0; i < mdFiles.length; i++) {
     const md = mdFiles[i]
@@ -78,25 +89,48 @@ async function handleZip(file) {
     progress.value = `上传文章 ${i + 1}/${mdFiles.length}: ${title}`
     try {
       let content = await md.entry.async('text')
+      const mdDir = md.path.substring(0, md.path.lastIndexOf('/') + 1)
 
-      // Rewrite image paths: ![alt](path) -> ![alt](raw_url)
+      function resolveImagePath(imgPath) {
+        if (!imgPath || imgPath.startsWith('http') || imgPath.startsWith('data:')) return null
+        // Decode URL-encoded characters (e.g. %20 -> space)
+        const decoded = decodeURIComponent(imgPath)
+        // Try resolving relative to md file directory
+        const resolved = mdDir + decoded
+        if (uploadedImages[resolved]) return getImageRawUrl(uploadedImages[resolved])
+        // Try resolving ../ prefix
+        const parts = mdDir.split('/').filter(Boolean)
+        const upParts = decoded.split('/')
+        let baseParts = [...parts]
+        for (const p of upParts) {
+          if (p === '..') baseParts.pop()
+          else if (p !== '.') baseParts.push(p)
+        }
+        const resolved2 = baseParts.join('/')
+        if (uploadedImages[resolved2]) return getImageRawUrl(uploadedImages[resolved2])
+        // Fallback: match by filename only
+        const justFilename = decoded.split('/').pop()
+        if (filenameToUrl[justFilename]) return filenameToUrl[justFilename]
+        console.warn('[ImportZip] Image not found:', { imgPath, decoded, mdDir, resolved, resolved2, justFilename })
+        return null
+      }
+
+      // Standard markdown: ![alt](path)
       content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, imgPath) => {
-        // Resolve relative path against the md file's directory
-        const mdDir = md.path.substring(0, md.path.lastIndexOf('/') + 1)
-        const resolved = mdDir + imgPath
-        // Check if this image exists in the zip
-        if (uploadedImages[resolved]) {
-          const rawUrl = getImageRawUrl(uploadedImages[resolved])
-          return `![${alt}](${rawUrl})`
-        }
-        // Also check by just the filename (in case path is simple)
-        const justFilename = imgPath.split('/').pop()
-        for (const [zipPath, uploadName] of Object.entries(uploadedImages)) {
-          if (uploadName === justFilename) {
-            return `![${alt}](${getImageRawUrl(uploadName)})`
-          }
-        }
-        return match
+        const url = resolveImagePath(imgPath)
+        return url ? `![${alt}](${url})` : match
+      })
+
+      // Obsidian wiki links: ![[filename]] or ![[filename|alias]]
+      content = content.replace(/!\[\[([^\]|]+?)(?:\|[^\]]+)?\]\]/g, (match, filename) => {
+        const url = resolveImagePath(filename.trim())
+        return url ? `![](${url})` : match
+      })
+
+      // HTML img tags: <img src="path" ...>
+      content = content.replace(/(<img\s+[^>]*src=")([^"]+)(")/gi, (match, prefix, src, suffix) => {
+        const url = resolveImagePath(src)
+        return url ? `${prefix}${url}${suffix}` : match
       })
 
       await createPost({ title, category: category.value, content })
