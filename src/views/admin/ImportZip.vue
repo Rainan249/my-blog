@@ -62,8 +62,8 @@ async function handleZip(file) {
     progress.value = `上传图片 ${i + 1}/${imageFiles.length}: ${filename}`
     try {
       const blob = await img.entry.async('blob')
-      const base64 = await blobToBase64(blob)
-      console.log(`[ImportZip] Uploading: ${filename}, size=${blob.size}, b64len=${base64.length}`)
+      const base64 = await compressImage(blob)
+      console.log(`[ImportZip] Uploading: ${filename}, original=${blob.size}, b64len=${base64.length}`)
       await uploadImage(filename, base64)
       uploadedImages[img.path] = filename
       console.log(`[ImportZip] OK: ${filename}`)
@@ -158,6 +158,22 @@ function blobToBase64(blob) {
     reader.onloadend = () => resolve(reader.result.split(',')[1])
     reader.readAsDataURL(blob)
   })
+}
+
+const MAX_SIZE = 900 * 1024 // 900KB to stay under GitHub's 1MB limit
+
+async function compressImage(blob) {
+  if (blob.size <= MAX_SIZE) return blobToBase64(blob)
+  const bitmap = await createImageBitmap(blob)
+  const ratio = Math.sqrt(MAX_SIZE / blob.size)
+  const w = Math.round(bitmap.width * ratio)
+  const h = Math.round(bitmap.height * ratio)
+  const canvas = new OffscreenCanvas(w, h)
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(bitmap, 0, 0, w, h)
+  const out = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.85 })
+  bitmap.close()
+  return blobToBase64(out)
 }
 
 function onFileChange(e) {
