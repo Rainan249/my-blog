@@ -59,7 +59,9 @@ async function request(path, options = {}) {
   const res = await fetch(`${API}${path}`, { headers: headers(), ...options })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(body.message || `GitHub API error: ${res.status}`)
+    const msg = body.message || `GitHub API error: ${res.status}`
+    const details = body.errors ? ` | ${JSON.stringify(body.errors)}` : ''
+    throw new Error(`${msg}${details}`)
   }
   if (res.status === 204) return null
   return res.json()
@@ -232,30 +234,22 @@ const RAW_BASE = `https://raw.githubusercontent.com/${REPO}/main`
 
 async function uploadImage(filename, base64Data) {
   const path = `${IMAGE_DIR}/${filename}`
+  // Try to get existing file SHA first
+  let sha = null
   try {
-    return await request(`/repos/${REPO}/contents/${path}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        message: `upload: ${filename}`,
-        content: base64Data,
-      }),
-    })
-  } catch (e) {
-    // On any error, try to get existing SHA and update instead
-    try {
-      const existing = await request(`/repos/${REPO}/contents/${path}`)
-      return request(`/repos/${REPO}/contents/${path}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          message: `update: ${filename}`,
-          content: base64Data,
-          sha: existing.sha,
-        }),
-      })
-    } catch {
-      throw e // throw original error if SHA fetch also fails
-    }
+    const existing = await request(`/repos/${REPO}/contents/${path}`)
+    sha = existing.sha
+  } catch {
+    // File doesn't exist yet, that's fine
   }
+
+  const body = { message: `upload: ${filename}`, content: base64Data }
+  if (sha) body.sha = sha
+
+  return request(`/repos/${REPO}/contents/${path}`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  })
 }
 
 function getImageRawUrl(filename) {
